@@ -3,7 +3,6 @@
     Functionally the same as 02-course-app-easy. Routes are different though. We now need to implement actual authentication here. We're going to use Json Web Tokens (JWT) for the same. When the user signs up, they should get back a jwt that is valid for 1 hour. They should then send just that jwt vs sending username and password to the authenticated routes.
 
     You need to understand the API of jwt. We will be covering this in the extra recorded session this week.
-
 # Routes
 ## Admin Routes:
     POST /admin/signup Description: Creates a new admin account. Input: { username: 'admin', password: 'pass' } Output: { message: 'Admin created successfully', token: 'jwt_token_here' }
