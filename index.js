@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
 const port = 3000;
 
 app.use(express.json());
@@ -11,33 +12,42 @@ let ADMINS = [];
 let USERS = [];
 let COURSES = [];
 
-const adminAuthentication = (req, res, next) => {
-  const { username, password } = req.headers;
-  console.log("control here");
-  console.log(username);
-  console.log(password);
-  const admin = ADMINS.find(
-    (a) => a.username === username && a.password === password
-  );
-  if (admin) {
-    next();
-  } else {
-    res.status(403).json({ messege: "Auth failed" });
-  }
+const secretKey = "fgFUBug4h76uv5i6a29374u4553v24a3uv";
+
+const generateJwt = (user) => {
+  const payload = { username: user.username };
+  return jwt.sign(secretKey, payload, { expiresIn: '1hr' });
 };
 
-const userAuthentication = (req, res, next) => {
-  const { username, password } = req.headers;
-  const user = USERS.find(
-    (u) => u.username === username && u.password === password
-  );
-  if (user) {
-    req.user = user; // Add user object to the request...
-    next();
-  } else {
-    res.status(404).json({ messege: "User authentication failed!" });
-  }
-};
+
+
+// const adminAuthentication = (req, res, next) => {
+//   const { username, password } = req.headers;
+//   console.log("control here");
+//   console.log(username);
+//   console.log(password);
+//   const admin = ADMINS.find(
+//     (a) => a.username === username && a.password === password
+//   );
+//   if (admin) {
+//     next();
+//   } else {
+//     res.status(403).json({ messege: "Auth failed" });
+//   }
+// };
+
+// const userAuthentication = (req, res, next) => {
+//   const { username, password } = req.headers;
+//   const user = USERS.find(
+//     (u) => u.username === username && u.password === password
+//   );
+//   if (user) {
+//     req.user = user; // Add user object to the request...
+//     next();
+//   } else {
+//     res.status(404).json({ messege: "User authentication failed!" });
+//   }
+// };
 
 // admin routes
 app.post("/admin/signup", (req, res) => {
@@ -53,11 +63,18 @@ app.post("/admin/signup", (req, res) => {
   }
 });
 
-app.post("/admin/login", adminAuthentication, (req, res) => {
-  res.json({ messege: "Admin logged in sucessfully" });
+app.post("/admin/login", (req, res) => {
+  const { username, password } = req.headers;
+  const admin = ADMINS.find((a) => a.username === username && a.password === password);
+  if(admin) {
+    const token = generateJwt(admin);
+    res.json({ messege: 'Signed in' });
+  } else {
+    res.status(403).json({ messege: 'Admin authentication failed' }, token);
+  }
 });
 
-app.get("/admin/courses", adminAuthentication, (req, res) => {
+app.get("/admin/courses", (req, res) => {
   const course = req.body;
   if (!course.title) {
     return res.status(411).send("Please provide course title");
@@ -67,7 +84,7 @@ app.get("/admin/courses", adminAuthentication, (req, res) => {
   res.json({ messege: "Course created successfully", courseId: course.id });
 });
 
-app.put("/admin/courses/:courseId", adminAuthentication, (req, res) => {
+app.put("/admin/courses/:courseId", (req, res) => {
   const courseId = parseInt(req.params.courseId);
   const course = COURSES.find((c) => c.id === courseId);
   if (course) {
@@ -78,7 +95,7 @@ app.put("/admin/courses/:courseId", adminAuthentication, (req, res) => {
   }
 });
 
-app.get("/admin/courses", adminAuthentication, (req, res) => {
+app.get("/admin/courses", (req, res) => {
   res.json({ courses: COURSES });
 });
 
@@ -94,11 +111,11 @@ app.post("/users/signup", (req, res) => {
   res.json({ messege: "User created successfully" });
 });
 
-app.post("/users/login", userAuthentication, (req, res) => {
+app.post("/users/login", (req, res) => {
   res.json({ messege: "User signed in successfully" });
 });
 
-app.get("/users/courses", userAuthentication, (req, res) => {
+app.get("/users/courses", (req, res) => {
   // let filteredCourses = [];
   // for(let i = 0; i<COURSES.lenght; i++) {
   //     if(COURSES[i].published) {
@@ -108,7 +125,7 @@ app.get("/users/courses", userAuthentication, (req, res) => {
   res.json({ courses: COURSES.filter((c) => c.published) });
 });
 
-app.post("/users/courses/:courseId", userAuthentication, (req, res) => {
+app.post("/users/courses/:courseId", (req, res) => {
   const courseId = parseInt(req.params.courseId);
   const course = COURSES.find((c) => c.courseId && c.published);
   if (course) {
@@ -120,7 +137,7 @@ app.post("/users/courses/:courseId", userAuthentication, (req, res) => {
   }
 });
 
-app.get("/users/purchasedcourses", userAuthentication, (req, res) => {
+app.get("/users/purchasedcourses", (req, res) => {
   const purchasedCourse = COURSES.filter((c) =>
     req.user.purchasedCourse.includes(c.id)
   );
