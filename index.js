@@ -19,7 +19,22 @@ const generateJwt = (user) => {
   return jwt.sign(secretKey, payload, { expiresIn: '1hr' });
 };
 
+const authenticateJwt = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
+  if(authHeader) {
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(secretKey, token, (err, user) => {
+      if(err) {
+        return res.sendStatus(403);
+      } else {
+        req.user = user;
+        next();
+      }
+    })
+  }
+}
 
 // const adminAuthentication = (req, res, next) => {
 //   const { username, password } = req.headers;
@@ -74,7 +89,7 @@ app.post("/admin/login", (req, res) => {
   }
 });
 
-app.get("/admin/courses", (req, res) => {
+app.get("/admin/courses", authenticateJwt, (req, res) => {
   const course = req.body;
   if (!course.title) {
     return res.status(411).send("Please provide course title");
