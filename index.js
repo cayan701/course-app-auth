@@ -91,12 +91,9 @@ app.post("/admin/login", (req, res) => {
 
 app.get("/admin/courses", authenticateJwt, (req, res) => {
   const course = req.body;
-  if (!course.title) {
-    return res.status(411).send("Please provide course title");
-  }
-  course.id = Date.now();
-  COURSES.push(course);
-  res.json({ messege: "Course created successfully", courseId: course.id });
+
+  course.id = COURSES.length + 1;
+  res.json({ messege: 'Course created successfully!', courseId: course.id });
 });
 
 app.put("/admin/courses/:courseId", (req, res) => {
