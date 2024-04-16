@@ -142,8 +142,8 @@ app.post("/users/signup", (req, res) => {
     res.status(403).json({ messege: 'User exists' });
   } else {
     USERS.push(user);
-    const token = generateJwt(user);
-    res.json({ messege: 'User added!' });
+    const token = generateJwtUser(user);
+    res.json({ messege: 'User added!' }, token);
   }
 });
 
