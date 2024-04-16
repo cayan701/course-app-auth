@@ -115,7 +115,13 @@ app.get("/admin/courses", (req, res) => {
 app.post("/users/signup", (req, res) => {
   const user = req.body;
   const existingUser = USERS.find((u) => u.username === user.username);
-  
+  if(existingUser) {
+    res.status(403).json({ messege: 'User exists' });
+  } else {
+    USERS.push(user);
+    const token = generateJwt(user);
+    res.json({ messege: 'User added!' });
+  }
 });
 
 app.post("/users/login", (req, res) => {
