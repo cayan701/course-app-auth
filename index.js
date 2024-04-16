@@ -14,12 +14,34 @@ let COURSES = [];
 
 const secretKey = "fgFUBug4h76uv5i6a29374u4553v24a3uv";
 
-const generateJwt = (user) => {
+const generateJwtAdmin = (admin) => {
+  const payload = { username: admin.username };
+  return jwt.sign(secretKey, payload, { expiresIn: '1hr' });
+};
+
+const generateJwtUser = (user) => {
   const payload = { username: user.username };
   return jwt.sign(secretKey, payload, { expiresIn: '1hr' });
 };
 
-const authenticateJwt = (req, res, next) => {
+const authenticateJwtAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if(authHeader) {
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(secretKey, token, (err, user) => {
+      if(err) {
+        return res.sendStatus(403);
+      } else {
+        req.user = user;
+        next();
+      }
+    })
+  }
+}
+
+const authenticateJwtUser = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if(authHeader) {
