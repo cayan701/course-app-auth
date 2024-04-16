@@ -93,6 +93,7 @@ app.get("/admin/courses", authenticateJwt, (req, res) => {
   const course = req.body;
 
   course.id = COURSES.length + 1;
+  COURSES.push(course);
   res.json({ messege: 'Course created successfully!', courseId: course.id });
 });
 
