@@ -95,7 +95,7 @@ app.post("/admin/signup", (req, res) => {
     res.status(403).json({ messege: "Admin already exists" });
   } else {
     ADMINS.push(admin);
-    const token = generateJwt(admin);
+    const token = generateJwtAdmin(admin);
     res.json({ messege: "Admin created successfully" }, token);
   }
 });
@@ -104,14 +104,14 @@ app.post("/admin/login", (req, res) => {
   const { username, password } = req.headers;
   const admin = ADMINS.find((a) => a.username === username && a.password === password);
   if(admin) {
-    const token = generateJwt(admin);
-    res.json({ messege: 'Signed in' });
+    const token = generateJwtAdmin(admin);
+    res.json({ messege: 'Signed in' }, token);
   } else {
-    res.status(403).json({ messege: 'Admin authentication failed' }, token);
+    res.status(403).json({ messege: 'Admin authentication failed' });
   }
 });
 
-app.get("/admin/courses", authenticateJwt, (req, res) => {
+app.get("/admin/courses", authenticateJwtAdmin, (req, res) => {
   const course = req.body;
 
   course.id = COURSES.length + 1;
@@ -119,7 +119,7 @@ app.get("/admin/courses", authenticateJwt, (req, res) => {
   res.json({ messege: 'Course created successfully!', courseId: course.id });
 });
 
-app.put("/admin/courses/:courseId", (req, res) => {
+app.put("/admin/courses/:courseId", authenticateJwtAdmin, (req, res) => {
   const courseId = parseInt(req.params.courseId);
   const course = COURSES.find((c) => c.id === courseId);
   if (course) {
@@ -130,7 +130,7 @@ app.put("/admin/courses/:courseId", (req, res) => {
   }
 });
 
-app.get("/admin/courses", (req, res) => {
+app.get("/admin/courses", authenticateJwtAdmin, (req, res) => {
   res.json({ courses: COURSES });
 });
 
